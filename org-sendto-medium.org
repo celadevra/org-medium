@@ -1,0 +1,29 @@
+#+TITLE: org-sendto-medium: publish to Medium from Org-Mode
+#+AUTHOR: Haoyang Xu
+
+* Usage
+
+  Get an integration token from the bottom of [[https://medium.com/me/settings][your Medium settings page]].
+
+  Put the following into your ~.emacs~:
+
+  #+BEGIN_SRC elisp :tangle no
+  (setq org-medium-integration-token "2dae023f889cc2be695d39042a49b2ba3863022335c804a31daa4dfe439e2fd66")
+  #+END_SRC
+
+  Of course, you should use your own token.
+
+  In Org-Mode, you can use 'org-sendto-medium' to publish current file to Medium.
+  
+* Code
+  :PROPERTIES:
+  :tangle:   org-sendto-medium.el
+  :END:
+** Preamble
+** Variables
+** Functions
+  
+* References
+
+  - [[https://medium.com/developers/welcome-to-the-medium-api-3418f956552#.7kpre5bjs][Welcome to the Medium API]]
+  - [[https://github.com/Medium/medium-api-docs][Medium API Docs]] 
