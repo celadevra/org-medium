@@ -168,6 +168,29 @@
           (let ((beg (point))) (end-of-line) (buffer-substring-no-properties beg (point)))))
     #+END_SRC
     
+    Then we can create the json and post it to Medium:
+
+    #+BEGIN_SRC elisp
+      (defun org-medium-post ()
+        "Publish your post to Medium."
+        (interactive)
+        (let* ((url-request-method "POST")
+               (auth-token (concat "Bearer" org-medium-integration-token))
+               (url-request-extra-headers
+                `(("Content Type" . "application/json")
+                  ("Accept" . "application/json")
+                  ("Authorization" . ,auth-token)
+                  ("Accept-Charset" . "utf-8")))
+               (content (org-html-export-as-html nil nil nil t '(:with-toc  nil)))
+               (title (org-medium-get-title))
+               (content-format "html")
+               (url-request-data (json-encode-plist `(:title ,title
+                                                             :content ,content
+                                                             :contentFormat ,content-format)))
+               (url (concat org-medium-apibegin "/" org-medium-author-id "/posts")))
+          (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
+    #+END_SRC
+    
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
