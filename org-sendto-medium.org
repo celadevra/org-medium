@@ -136,7 +136,38 @@
     #+END_SRC
     
     Things I learned writing these two functions: you can use backquote, instead of quote, to quote a list. In this case, you can use a comma in a backquoted list to force evaluation of lists and variables. Alternatively, you can use ~cons~ to construct an association list, which evaluates the values before creating the key-value pair. You don't always need ~json.el~. You can use search and 'current-word' to extract useful information. 
-*** Generate HTML from Org-Mode file
+*** Generate data from Org-Mode file
+    The API accepts the following parameters:
+    | Parameter     | Type         | Required? |
+    |---------------+--------------+-----------|
+    | title         | string       | y         |
+    | contentFormat | string       | y         |
+    | content       | string       | y         |
+    | tags          | string array | n         |
+    | canonicalUrl  | string       | n         |
+    | publishStatus | enum         | n         |
+    | license       | enum         | n         |
+
+    Below are some experiment space for optimized output:
+    
+    #+BEGIN_SRC elisp :tangle no
+      (org-html-export-as-html nil nil nil t '(:with-toc  nil))
+    #+END_SRC
+    
+    The above code seems good enough. When running the code, Emacs opens a HTML buffer in another window, the generated HTML only have the ~<body>~ part, so the content part can be generated with this.
+
+    How do I get title?
+
+    #+BEGIN_SRC elisp
+      (defun org-medium-get-title ()
+        "Get title from the #+TITLE keyword of current document."
+        (interactive)
+        (save-excursion
+          (goto-char (point-min))
+          (search-forward-regexp "#\\+title:\\ *")
+          (let ((beg (point))) (end-of-line) (buffer-substring-no-properties beg (point)))))
+    #+END_SRC
+    
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
@@ -145,6 +176,7 @@
   
 * Ideas/Road Map
 ** Allow using curl to talk with Medium in async mode
+** Allow user to choose whether publish the whole file or a subtree
 * References
 
   - [[https://medium.com/developers/welcome-to-the-medium-api-3418f956552#.7kpre5bjs][Welcome to the Medium API]]
