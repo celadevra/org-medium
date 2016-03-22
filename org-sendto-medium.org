@@ -20,6 +20,28 @@
   :tangle:   org-sendto-medium.el
   :END:
 ** Preamble
+   The header of the file must conform to the Emacs Lisp library header conventions. See references for more information.
+   
+   #+BEGIN_SRC elisp
+     ;;; org-sendto-medium.el --- Export articles in Org-Mode to Medium
+     ;; Copyright (C) 2016 Haoyang Xu
+
+     ;; Author: Haoyang Xu <haoyang@expoundite.net>
+     ;; Created: 22 Mar 2016
+     ;; Version: 0.1
+     ;; Package-Requires: ((org "8.0"))
+
+     ;; Keywords: comm, processes
+     ;; Homepage: https://github.com/celadevra/org-sendto-medium
+
+     ;; This file is not part of GNU Emacs.
+
+     ;;; Commentary:
+
+     ;; This package provides a function to publish Org-Mode files to Medium.com.
+     
+     ;;; Code:
+   #+END_SRC
 ** Variables
 ** Functions
   
@@ -27,3 +49,5 @@
 
   - [[https://medium.com/developers/welcome-to-the-medium-api-3418f956552#.7kpre5bjs][Welcome to the Medium API]]
   - [[https://github.com/Medium/medium-api-docs][Medium API Docs]] 
+  - [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Simple-Packages.html][Simple Packages]]
+  - [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Library-Headers.html#Library-Headers][Conventional Headers for Emacs Libraries]] 
