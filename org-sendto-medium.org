@@ -19,10 +19,12 @@
   (require 'org-sendto-medium)
   (setq org-medium-integration-token "2dae023f889cc2be695d39042a49b2ba3863022335c804a31daa4dfe439e2fd66")
   #+END_SRC
+  
+  Press ~M-x customize-group<CR>~, then input 'org-medium'. Put your integration token in the field "Org Medium Integration Token", then apply and save.
 
   Of course, you should use your own token.
 
-  In Org-Mode, you can use 'org-sendto-medium' to publish current file to Medium.
+  In Org-Mode, you can use ~M-x org-sendto-medium~ to publish current file to Medium.
   
 * Code
   :PROPERTIES:
@@ -169,20 +171,22 @@
     Then I can use a function to read the content of the buffer, another to process the content so they become a sane html string, and return the string.
 
     #+BEGIN_SRC elisp
-      (defun org-medium-get-content ()
+      (defun org-medium-get-content (title)
         "Get generated html from Org's export buffer."
         (save-excursion
           (let ((buffer (org-html-export-as-html nil nil nil t '(:with-toc  nil))))
-            (org-medium-process-html buffer))))
+            (org-medium-process-html buffer title))))
 
-      (defun org-medium-process-html (buffer)
+      (defun org-medium-process-html (buffer title)
         "Sanitize buffer content so they are acceptable by Medium's API. 
       Only tags such as <h1><h2><blockquote><p><figure><a><hr> and some
        emphases are accepted."
         (save-excursion
           (with-current-buffer buffer
+	    (goto-char (point-min))
+	    (insert (concat "<h1>" title "</h1>"))
             (let ((string (buffer-string)))
-              (replace-regexp-in-string "\\\n" "" (replace-regexp-in-string "\\\\\/p" "/p" string nil t))))))
+              (replace-regexp-in-string "\\\n" "" string)))))
     #+END_SRC
 
     How do I get title?
@@ -212,7 +216,7 @@
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8")))
                (title (org-medium-get-title))
-               (content (org-medium-get-content))
+               (content (org-medium-get-content title))
                (content-format "html")
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
@@ -235,6 +239,8 @@
 
     #+RESULTS:
     | data":{"id":"eb4636fc460c | test | 1dbae663a0feb843cc95a11df2f018eb6941466ce34f25cc0ca7d157f97b8e825 | [[https://medium.com/@celadevra/eb4636fc460c]] | canonicalUrl:"" | draft | license:"" | [[https://medium.com/policy/9db0094a1e0f]] | tags:[]}} |
+    
+    Turn out it's because of the typo "Content Type" ~> "Content-Type". Silly me.
 
     
 ** Postamble
@@ -244,6 +250,10 @@
    #+END_SRC
   
 * Ideas/Road Map
+** Handle errors during authentication/publishing
+** Allow choosing license during publishing
+** Allow publish as draft/unlisted
+** Allow choosing markdown as an intermediate format
 ** Allow using curl to talk with Medium in async mode
 ** Allow user to choose whether publish the whole file or a subtree
 * References
