@@ -75,11 +75,11 @@
     
     Save token in a variable:
     #+BEGIN_SRC elisp
-      (defvar org-medium-integration-token ""
-        "Self-issued token for authentication with Medium. You can generate yours at https://medium.com/me/settings")
+      (defcustom org-medium-integration-token nil
+        "Self-issued token for authentication with Medium. You can generate yours at https://medium.com/me/settings"
+        :group 'org-medium
+        :type 'string)
     #+END_SRC
-    
-    #+PROPERTY: comments org
     
     With correct integration token, Medium's user information API endpoint will send us a series of data, we are storing the "id" data in this variable:
     #+BEGIN_SRC elisp
@@ -88,18 +88,29 @@
     #+END_SRC
     
 ** Functions
-*** Test if a integration token exists
+*** Test integration token existence, and help user set 
     Before doing anything else, test if the integration token is empty. If empty, prompt user to go to medium.com, get an integration token and set the variable.
 
     #+BEGIN_SRC elisp
       (defun org-medium-test-token ()
         "Test if the integration token for medium is present. If not, ask the user to get one and open the url for user."
-        (if (eq 0 (length org-medium-integration-token))
+        (if (or (not org-medium-integration-token) (string= "" org-medium-integration-token))
             (progn
-              (if (y-or-n-p "Your integration token is not set, take you to medium so you can get one? (y/n): ")
-                  (browse-url-default-browser "https://medium.com/me/settings")
-                (message "Please set variable org-medium-integration-token."))
-              (signal 'quit nil))))
+              (if (y-or-n-p "Your integration token is not set, take you to medium so you can get one? ")
+                  (browse-url-default-browser "https://medium.com/me/settings"))
+              (generate-new-buffer "*Instructions*")
+              (switch-to-buffer-other-window "*Instructions*")
+              (insert "Scroll to the bottom of your Medium settings page, find heading \"integration tokens\".\n
+      In the text box below, input an identifier such as \"my emacs\", \n
+      and hit the \"Get integration token\" button, copy the generated\n
+      token and paste it in the minibuffer.")
+              (let ((x (read-string "Paste your integration token here: ")))
+                ;(setq org-medium-integration-token (eval x))
+                ;(put org-medium-integration-token 'customized-value (list (custom-quote (symbol-value org-medium-integration-token))))
+                (customize-save-variable 'org-medium-integration-token (eval x)))
+              (message "Integration token saved.")
+              (kill-buffer "*Instructions*"))
+          (message "Integration token found.")))
     #+END_SRC
 *** Get author's ID
     To create a post, one must send a POST request to the API endpoint, part of which is the author's ID.
@@ -108,15 +119,14 @@
     #+BEGIN_SRC elisp
       (defun org-medium-get-authorid ()
         "Obtain author information from Medium and return the id for later use"
-        ()
-        (org-medium-test-token)
-        (org-medium-me-query))
+        (progn 
+          (org-medium-test-token)
+          (org-medium-me-query)))
     #+END_SRC
     
     #+BEGIN_SRC elisp
       (defun org-medium-me-query ()
         "Query Medium for user information."
-        ()
         (let* ((url-request-method "GET")
                (auth-token (concat "Bearer " org-medium-integration-token))
                (url-request-extra-headers
@@ -124,15 +134,15 @@
                   ("Accept" . "application/json")
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8"))))
-          (url-retrieve org-medium-apiuser 'org-medium-json-parse)))
+          (url-retrieve org-medium-apiuser 'org-medium-find-id)))
 
-      (defun org-medium-json-parse (status)
+      (defun org-medium-find-id (status)
         "Parse JSON to extract required data from response."
         (switch-to-buffer (current-buffer))
         (set-window-point (selected-window) (point-min))
         (search-forward-regexp "\"id\":\"\\([0-9abcdef]*\\)")
         (setq org-medium-author-id (current-word))
-	(kill-buffer))
+        (kill-buffer))
     #+END_SRC
     
     Things I learned writing these two functions: you can use backquote, instead of quote, to quote a list. In this case, you can use a comma in a backquoted list to force evaluation of lists and variables. Alternatively, you can use ~cons~ to construct an association list, which evaluates the values before creating the key-value pair. You don't always need ~json.el~. You can use search and 'current-word' to extract useful information. 
@@ -155,13 +165,23 @@
     #+END_SRC
     
     The above code seems good enough. When running the code, Emacs opens a HTML buffer in another window, the generated HTML only have the ~<body>~ part, so the content part can be generated with this.
+    
+    Then I can use a function to read the content of the buffer, and return the string.
+
+    #+BEGIN_SRC elisp
+      (defun org-medium-get-content ()
+        "Get generated html from Org's export buffer."
+        (save-excursion
+          (let ((buffer (org-html-export-as-html nil nil nil t '(:with-toc  nil))))
+            (switch-to-buffer buffer)
+            (buffer-string))))
+    #+END_SRC
 
     How do I get title?
 
     #+BEGIN_SRC elisp
       (defun org-medium-get-title ()
         "Get title from the #+TITLE keyword of current document."
-        (interactive)
         (save-excursion
           (goto-char (point-min))
           (search-forward-regexp "#\\+title:\\ *")
@@ -171,9 +191,11 @@
     Then we can create the json and post it to Medium:
 
     #+BEGIN_SRC elisp
-      (defun org-medium-post ()
+      (defun org-sendto-medium ()
         "Publish your post to Medium."
         (interactive)
+        (if (not (and org-medium-author-id (org-medium-test-token)))
+            (setq org-medium-author-id (org-medium-get-authorid)))
         (let* ((url-request-method "POST")
                (auth-token (concat "Bearer" org-medium-integration-token))
                (url-request-extra-headers
@@ -181,8 +203,8 @@
                   ("Accept" . "application/json")
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8")))
-               (content (org-html-export-as-html nil nil nil t '(:with-toc  nil)))
                (title (org-medium-get-title))
+               (content (org-medium-get-content))
                (content-format "html")
                (url-request-data (json-encode-plist `(:title ,title
                                                              :content ,content
