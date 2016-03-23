@@ -129,7 +129,7 @@
         (let* ((url-request-method "GET")
                (auth-token (concat "Bearer " org-medium-integration-token))
                (url-request-extra-headers
-                `(("Content Type" . "application/json")
+                `(("Content-Type" . "application/json")
                   ("Accept" . "application/json")
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8"))))
