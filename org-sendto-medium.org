@@ -106,8 +106,6 @@
       and hit the \"Get integration token\" button, copy the generated\n
       token and paste it in the minibuffer.")
               (let ((x (read-string "Paste your integration token here: ")))
-                ;(setq org-medium-integration-token (eval x))
-                ;(put org-medium-integration-token 'customized-value (list (custom-quote (symbol-value org-medium-integration-token))))
                 (customize-save-variable 'org-medium-integration-token (eval x)))
               (message "Integration token saved.")
               (kill-buffer "*Instructions*"))
