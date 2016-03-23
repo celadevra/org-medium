@@ -17,7 +17,6 @@
 
   #+BEGIN_SRC elisp :tangle no
   (require 'org-sendto-medium)
-  (setq org-medium-integration-token "2dae023f889cc2be695d39042a49b2ba3863022335c804a31daa4dfe439e2fd66")
   #+END_SRC
   
   Press ~M-x customize-group<CR>~, then input 'org-medium'. Put your integration token in the field "Org Medium Integration Token", then apply and save.
