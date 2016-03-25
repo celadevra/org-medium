@@ -137,11 +137,14 @@
 
       (defun org-medium-find-id (status)
         "Parse JSON to extract required data from response."
-        (switch-to-buffer (current-buffer))
-        (set-window-point (selected-window) (point-min))
-        (search-forward-regexp "\"id\":\"\\([0-9abcdef]*\\)")
-        (setq org-medium-author-id (current-word))
-        (kill-buffer))
+        (if status ;something bad happens on the remote end
+            (message "Medium returns error %s. Please try later." (car (plist-get status :error)))
+          (progn 
+            (switch-to-buffer (current-buffer))
+            (set-window-point (selected-window) (point-min))
+            (search-forward-regexp "\"id\":\"\\([0-9abcdef]*\\)\"")
+            (setq org-medium-author-id (current-word))
+            (kill-buffer))))
     #+END_SRC
     
     Things I learned writing these two functions: you can use backquote, instead of quote, to quote a list. In this case, you can use a comma in a backquoted list to force evaluation of lists and variables. Alternatively, you can use ~cons~ to construct an association list, which evaluates the values before creating the key-value pair. You don't always need ~json.el~. You can use search and 'current-word' to extract useful information. 
