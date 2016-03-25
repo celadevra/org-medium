@@ -88,6 +88,23 @@
         "Author id returned by Medium API given correct token.")
     #+END_SRC
     
+*** Default license
+    When publishing on Medium, you can reserve all the rights, or choose from several Creative Commons license. By default, it's "All Rights Reserved". This variable allow you customize the default license you want to use for your posts.
+    #+BEGIN_SRC elisp
+      (defcustom org-medium-default-license "all-rights-reserved"
+        "Default license for posts published."
+        :group 'org-medium
+        :type '(choice
+                (string :tag "all-rights-reserved" "all-rights-reserved")
+                (string :tag "cc-40-by" "cc-40-by")
+                (string :tag "cc-40-by-sa" "cc-40-by-sa")
+                (string :tag "cc-40-by-nd" "cc-40-by-nd")
+                (string :tag "cc-40-by-nc" "cc-40-by-nc")
+                (string :tag "cc-40-by-nc-nd" "cc-40-by-nc-nd")
+                (string :tag "cc-40-by-nc-sa" "cc-40-by-nc-sa")
+                (string :tag "cc-40-zero" "cc-40-zero")
+                (string :tag "public-domain" "public-domain")))
+    #+END_SRC
 ** Functions
 *** Test integration token existence, and help user set 
     Before doing anything else, test if the integration token is empty. If empty, prompt user to go to medium.com, get an integration token and set the variable.
@@ -218,9 +235,11 @@
                (title (org-medium-get-title))
                (content (org-medium-get-content title))
                (content-format "html")
+	       (license org-medium-default-license)
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
                                                              :content ,content
+							     :license ,license
                                                              )))
                (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
           (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
