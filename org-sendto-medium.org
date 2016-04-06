@@ -23,7 +23,7 @@
 
   Of course, you should use your own token.
 
-  In Org-Mode, you can use ~M-x org-sendto-medium~ to publish current file to Medium.
+  In Org-Mode, you can use ~M-x org-sendto-medium~ to publish current file to Medium. The post will be licensed with ~org-medium-default-license~. Alternatively, you can use ~M-x org-sendto-medium-with-license~ to publish, and you will be asked to choose one of the following licenses: "all-rights-reserved" "cc-40-by" "cc-40-by-sa" "cc-40-by-nd" "cc-40-by-nc" "cc-40-by-nc-nd" "cc-40-by-nc-sa" "cc-40-zero" and "public-domain". Values other than these will be interpreted by Medium API as "all-rights-reserved".
   
 * Code
   :PROPERTIES:
@@ -261,6 +261,31 @@
     
     Turn out it's because of the typo "Content Type" ~> "Content-Type". Silly me.
 
+    #+BEGIN_SRC elisp
+      (defun org-sendto-medium-with-license ()
+              "Publish your post to Medium with specified license."
+              (interactive)
+              (if (not (and org-medium-author-id (org-medium-test-token)))
+                  (setq org-medium-author-id (org-medium-get-authorid)))
+              (let* ((url-request-method "POST")
+                     (auth-token (concat "Bearer " org-medium-integration-token))
+                     (url-request-extra-headers
+                      `(("Content-Type" . "application/json")
+                        ("Accept" . "application/json")
+                        ("Authorization" . ,auth-token)
+                        ("Accept-Charset" . "utf-8")))
+                     (title (org-medium-get-title))
+                     (content (org-medium-get-content title))
+                     (content-format "html")
+                     (license (read-string "Please select license, unknown license = all rights reserved: " "all-rights-reserved" nil '("all-rights-reserved" "cc-40-by" "cc-40-by-sa" "cc-40-by-nd" "cc-40-by-nc" "cc-40-by-nc-nd" "cc-40-by-nc-sa" "cc-40-zero" "public-domain")))
+                     (url-request-data (json-encode-plist `(:title ,title
+                                                                   :contentFormat ,content-format
+                                                                   :content ,content
+                                                                   :license ,license
+                                                                   )))
+                     (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
+                (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
+    #+END_SRC
     
 ** Postamble
    #+BEGIN_SRC elisp
