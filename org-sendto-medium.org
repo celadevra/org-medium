@@ -269,8 +269,8 @@
    #+END_SRC
   
 * Ideas/Road Map
-** Handle errors during authentication/publishing
-** Allow choosing license during publishing
+** +Handle errors during authentication/publishing+
+** +Allow choosing license during publishing+
 ** Allow publish as draft/unlisted
 ** Allow choosing markdown as an intermediate format
 ** Allow using curl to talk with Medium in async mode
