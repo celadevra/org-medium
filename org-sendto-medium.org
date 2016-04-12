@@ -121,6 +121,7 @@
 *** Test integration token existence, and help user set 
     Before doing anything else, test if the integration token is empty. If empty, prompt user to go to medium.com, get an integration token and set the variable.
 
+    #+NAME: org-medium-test-token
     #+BEGIN_SRC elisp
       (defun org-medium-test-token ()
         "Test if the integration token for medium is present. If not, ask the user to get one and open the url for user."
@@ -144,6 +145,7 @@
     To create a post, one must send a POST request to the API endpoint, part of which is the author's ID.
 
     Get author ID from Medium:
+    #+NAME: org-medium-get-authorid
     #+BEGIN_SRC elisp
       (defun org-medium-get-authorid ()
         "Obtain author information from Medium and return the id for later use"
@@ -152,6 +154,7 @@
           (org-medium-me-query)))
     #+END_SRC
     
+    #+NAME: org-medium-me-query
     #+BEGIN_SRC elisp
       (defun org-medium-me-query ()
         "Query Medium for user information."
@@ -199,6 +202,7 @@
     
     Then I can use a function to read the content of the buffer, another to process the content so they become a sane html string, and return the string.
 
+    #+NAME: org-medium-process-html
     #+BEGIN_SRC elisp
       (defun org-medium-get-content (title)
         "Get generated html from Org's export buffer."
@@ -220,6 +224,7 @@
 
     How do I get title?
 
+    #+NAME: org-medium-get-title
     #+BEGIN_SRC elisp
       (defun org-medium-get-title ()
         "Get title from the #+TITLE keyword of current document."
@@ -231,8 +236,9 @@
     
     Then we can create the json and post it to Medium:
 
+    #+NAME: org-sendto-medium
     #+BEGIN_SRC elisp
-      (defun org-sendto-medium ()
+      (defun org-sendto-medium ()                                (ref:default-sendto)
         "Publish your post to Medium."
         (interactive)
         (if (not (and org-medium-author-id (org-medium-test-token)))
@@ -247,11 +253,11 @@
                (title (org-medium-get-title))
                (content (org-medium-get-content title))
                (content-format "html")
-	       (license org-medium-default-license)
+               (license org-medium-default-license)
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
                                                              :content ,content
-							     :license ,license
+                                                             :license ,license
                                                              )))
                (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
           (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
@@ -272,7 +278,10 @@
     | data":{"id":"eb4636fc460c | test | 1dbae663a0feb843cc95a11df2f018eb6941466ce34f25cc0ca7d157f97b8e825 | [[https://medium.com/@celadevra/eb4636fc460c]] | canonicalUrl:"" | draft | license:"" | [[https://medium.com/policy/9db0094a1e0f]] | tags:[]}} |
     
     Turn out it's because of the typo "Content Type" ~> "Content-Type". Silly me.
+    
+    The following function is mostly identical to [[(default-sendto)][the default 'send' function]], but the license variable uses user input to specify a different license from the value of default license.
 
+    #+NAME: org-sendto-medium-with-license
     #+BEGIN_SRC elisp
       (defun org-sendto-medium-with-license ()
               "Publish your post to Medium with specified license."
@@ -299,6 +308,8 @@
                 (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
     #+END_SRC
     
+    Another function can be produced to send the post to Medium in a different status ("published" "draft" or "unlisted") than the default status.
+    
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
@@ -309,6 +320,7 @@
 ** +Handle errors during authentication/publishing+
 ** +Allow choosing license during publishing+
 ** Allow publish as draft/unlisted
+** Use a dispatcher to set options and publish
 ** Allow choosing markdown as an intermediate format
 ** Allow using curl to talk with Medium in async mode
 ** Allow user to choose whether publish the whole file or a subtree
