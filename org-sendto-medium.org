@@ -105,6 +105,18 @@
                 (string :tag "cc-40-zero" "cc-40-zero")
                 (string :tag "public-domain" "public-domain")))
     #+END_SRC
+*** Publish status
+    In some cases, I may want to publish the article as a draft or unlisted on Medium. This customizable variable determines the default behaviour: to publish as public, unlisted, or a draft.
+    #+BEGIN_SRC elisp
+      (defcustom org-medium-default-visibility "public"
+        "Default visibility of posts published. Can be one status among the 3 below:
+      public, unlisted, or draft."
+        :group 'org-medium
+        :type '(choice
+                (string :tag "Public" "public")
+                (string :tag "Unlisted" "unlisted")
+                (string :tag "Draft" "draft")))
+    #+END_SRC
 ** Functions
 *** Test integration token existence, and help user set 
     Before doing anything else, test if the integration token is empty. If empty, prompt user to go to medium.com, get an integration token and set the variable.
