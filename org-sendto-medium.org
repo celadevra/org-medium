@@ -310,6 +310,8 @@
     
     Another function can be produced to send the post to Medium in a different status ("published" "draft" or "unlisted") than the default status.
     
+** Dispatcher
+   As there may be many settings, the DRY way is to write just a few publishing functions, preferrably only one, several functions for setting various variables, and a dispatcher function that provides an uniform interface to all these variable-setting and post-sending functions. The dispatcher interface works somewhat like Org-Mode's export dispatcher, where the user can choose values of settings by pressing shortcut keys, and then the dispatcher calls the relevant function to complete the compile-send actions.
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
