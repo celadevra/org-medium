@@ -254,33 +254,20 @@
                (content (org-medium-get-content title))
                (content-format "html")
                (license org-medium-default-license)
+               (publish-status org-medium-default-visibility)
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
                                                              :content ,content
+                                                             :publishStatus ,publish-status
                                                              :license ,license
                                                              )))
                (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
           (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
     #+END_SRC
     
-    Medium always gives me error "no content specified", I suspect it's the "<\/p>" tag in content. Experiment with cURL:
-
-    #+BEGIN_SRC sh :tangle no
-      curl -H "Authorization: Bearer 21a7cff4d265fe342ef130cf653558332a29c6f27234aa6c98ae01c6f600bb601"\
-           -H "Content-Type: application/json"\
-           -H "Accept: application/json"\
-           -H "Accept-Charset: utf-8"\
-           --data '{"title":"test","content":"Testing tags <p>a<\/p>","contentFormat":"html","publishStatus":"draft"}'\
-          https://api.medium.com/v1/users/1dbae663a0feb843cc95a11df2f018eb6941466ce34f25cc0ca7d157f97b8e825/posts
-    #+END_SRC
-
-    #+RESULTS:
-    | data":{"id":"eb4636fc460c | test | 1dbae663a0feb843cc95a11df2f018eb6941466ce34f25cc0ca7d157f97b8e825 | [[https://medium.com/@celadevra/eb4636fc460c]] | canonicalUrl:"" | draft | license:"" | [[https://medium.com/policy/9db0094a1e0f]] | tags:[]}} |
+    By default, the above function sends the post with default settings. You can also send in arguments to customize license, visibility, etc.
     
-    Turn out it's because of the typo "Content Type" ~> "Content-Type". Silly me.
-    
-    The following function is mostly identical to [[(default-sendto)][the default 'send' function]], but the license variable uses user input to specify a different license from the value of default license.
-
+    This function is for reference here, will be deleted later:
     #+NAME: org-sendto-medium-with-license
     #+BEGIN_SRC elisp
       (defun org-sendto-medium-with-license ()
@@ -307,8 +294,6 @@
                      (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
                 (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
     #+END_SRC
-    
-    Another function can be produced to send the post to Medium in a different status ("published" "draft" or "unlisted") than the default status.
     
 ** Dispatcher
    As there may be many settings, the DRY way is to write just a few publishing functions, preferrably only one, several functions for setting various variables, and a dispatcher function that provides an uniform interface to all these variable-setting and post-sending functions. The dispatcher interface works somewhat like Org-Mode's export dispatcher, where the user can choose values of settings by pressing shortcut keys, and then the dispatcher calls the relevant function to complete the compile-send actions.
