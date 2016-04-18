@@ -323,6 +323,7 @@
 ** +Allow choosing license during publishing+
 ** Allow publish as draft/unlisted
 ** Use a dispatcher to set options and publish
+** Allow assigning tags to post
 ** Allow choosing markdown as an intermediate format
 ** Allow using curl to talk with Medium in async mode
 ** Allow user to choose whether publish the whole file or a subtree
