@@ -238,9 +238,22 @@
 
     #+NAME: org-sendto-medium
     #+BEGIN_SRC elisp
-      (defun org-sendto-medium ()
+      (defun org-sendto-medium (&optional lic visib)
         "When called without arguments, publish your post to Medium with default settings.
-      When called with LICENSE and/or VISIBILITY arguments, send post request with customized arguments to alter publishing behaviour."
+      When called with LIC and/or VISIB arguments, send post request with customized arguments to alter publishing behaviour.
+
+      Possible LIC values are:
+      \"all-rights-reserved\"
+      \"cc-40-by\"
+      \"cc-40-by-sa\"
+      \"cc-40-by-nd\"
+      \"cc-40-by-nc-nd\"
+      \"cc-40-by-nc-sa\"
+      \"cc-40-zero\"
+      \"public-domain\"
+
+      Possible VISIB values are \"public\" \"draft\" and \"unlisted\".
+      "
         (interactive)
         (if (not (and org-medium-author-id (org-medium-test-token)))
             (setq org-medium-author-id (org-medium-get-authorid)))
@@ -254,14 +267,13 @@
                (title (org-medium-get-title))
                (content (org-medium-get-content title))
                (content-format "html")
-               (license org-medium-default-license)
-               (publish-status org-medium-default-visibility)
+               (license (or lic org-medium-default-license))
+               (publish-status (or visib org-medium-default-visibility))
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
                                                              :content ,content
                                                              :publishStatus ,publish-status
-                                                             :license ,license
-                                                             )))
+                                                             :license ,license)))
                (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
           (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
     #+END_SRC
