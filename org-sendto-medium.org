@@ -238,8 +238,9 @@
 
     #+NAME: org-sendto-medium
     #+BEGIN_SRC elisp
-      (defun org-sendto-medium ()                                (ref:default-sendto)
-        "Publish your post to Medium."
+      (defun org-sendto-medium ()
+        "When called without arguments, publish your post to Medium with default settings.
+      When called with LICENSE and/or VISIBILITY arguments, send post request with customized arguments to alter publishing behaviour."
         (interactive)
         (if (not (and org-medium-author-id (org-medium-test-token)))
             (setq org-medium-author-id (org-medium-get-authorid)))
