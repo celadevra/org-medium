@@ -279,37 +279,13 @@
     #+END_SRC
     
     By default, the above function sends the post with default settings. You can also send in arguments to customize license, visibility, etc.
-    
-    This function is for reference here, will be deleted later:
-    #+NAME: org-sendto-medium-with-license
-    #+BEGIN_SRC elisp
-      (defun org-sendto-medium-with-license ()
-              "Publish your post to Medium with specified license."
-              (interactive)
-              (if (not (and org-medium-author-id (org-medium-test-token)))
-                  (setq org-medium-author-id (org-medium-get-authorid)))
-              (let* ((url-request-method "POST")
-                     (auth-token (concat "Bearer " org-medium-integration-token))
-                     (url-request-extra-headers
-                      `(("Content-Type" . "application/json")
-                        ("Accept" . "application/json")
-                        ("Authorization" . ,auth-token)
-                        ("Accept-Charset" . "utf-8")))
-                     (title (org-medium-get-title))
-                     (content (org-medium-get-content title))
-                     (content-format "html")
-                     (license (read-string "Please select license, unknown license = all rights reserved: " "all-rights-reserved" nil '("all-rights-reserved" "cc-40-by" "cc-40-by-sa" "cc-40-by-nd" "cc-40-by-nc" "cc-40-by-nc-nd" "cc-40-by-nc-sa" "cc-40-zero" "public-domain")))
-                     (url-request-data (json-encode-plist `(:title ,title
-                                                                   :contentFormat ,content-format
-                                                                   :content ,content
-                                                                   :license ,license
-                                                                   )))
-                     (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
-                (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
-    #+END_SRC
-    
+   
 ** Dispatcher
    As there may be many settings, the DRY way is to write just a few publishing functions, preferrably only one, several functions for setting various variables, and a dispatcher function that provides an uniform interface to all these variable-setting and post-sending functions. The dispatcher interface works somewhat like Org-Mode's export dispatcher, where the user can choose values of settings by pressing shortcut keys, and then the dispatcher calls the relevant function to complete the compile-send actions.
+   
+   The dispatcher works like this: firstly, it shows an interface with ~org-medium-dispatch-ui~. The function displays a number of license and post status options, highlight the currently selected ones, and record the selection to the publish function.
+
+   Hitting <ENTER> in the UI calls ~org-medium-dispatch-action~, which gets the selection of options and send them to ~org-sendto-medium~.
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
