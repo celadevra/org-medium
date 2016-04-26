@@ -286,6 +286,54 @@
    The dispatcher works like this: firstly, it shows an interface with ~org-medium-dispatch-ui~. The function displays a number of license and post status options, highlight the currently selected ones, and record the selection to the publish function.
 
    Hitting <ENTER> in the UI calls ~org-medium-dispatch-action~, which gets the selection of options and send them to ~org-sendto-medium~.
+   
+   #+BEGIN_SRC elisp
+     (defun org-medium-dispatch (&optional arg)
+       "a dispatcher for selecting licenses and status when publishing to Medium."
+       (interactive "P")
+       (if (eq arg '(4))
+           (org-medium-sendto org-medium-last-options))
+       (if (eq arg '(16))
+           (org-medium-dispatch-ui org-medium-last-options))
+       (org-medium-dispatch-ui org-medium-default-license org-medium-default-visibility))
+   #+END_SRC
+   
+   #+BEGIN_SRC elisp
+     (defun org-medium-dispatch-ui (lic visib)
+       "Show options and highlight selections of Medium publishing settings. "
+       (let* ((fontify-key
+               (lambda (key)
+                 (org-propertize key 'face 'org-warning)))
+              (fontify-value
+               (lambda (value)
+                 (org-propertize value 'face 'font-lock-variable-name-face)))
+              (help
+               (concat
+                (format "License: \n")
+                (format "[%s] All Rights Reserved       [%s] CC-BY
+                         [%s] CC-BY-SA                  [%s] CC-BY-ND
+                         [%s] CC-BY-NC                  [%s] CC-BY-NC-ND
+                         [%s] CC-BY-NC-SA               [%s] CC-0
+                         [%s] Public Domain"
+                        (funcall fontify-key "a")
+                        (funcall fontify-key "b")
+                        (funcall fontify-key "n")
+                        (funcall fontify-key "s")
+                        (funcall fontify-key "c")
+                        (funcall fontify-key "d")
+                        (funcall fontify-key "y")
+                        (funcall fontify-key "0")
+                        (funcall fontify-key "p"))
+                (format "\n\nStatus: \n")
+                (format "[%s] Public                    [%s] Unlisted
+                         [%s] Draft"
+                        (funcall fontify-key "P")
+                        (funcall fontify-key "U")
+                        (funcall fontify-key "D"))
+                (format "\n\nEnter to publish with current options: license = %s, visibility = %s" lic visib)))
+              (allowed-keys (list 80 97 98 99 100 110 112 115 121 48 85 68))
+              (standard-prompt "Key for options: "))))
+   #+END_SRC
 ** Postamble
    #+BEGIN_SRC elisp
      (provide 'org-sendto-medium)
