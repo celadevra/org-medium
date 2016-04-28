@@ -16,14 +16,15 @@
   Put the following into your ~.emacs~:
 
   #+BEGIN_SRC elisp :tangle no
-  (require 'org-sendto-medium)
+    (require 'org-sendto-medium)
+    (define-key org-mode-map (kbd "C-x C-j") 'org-sendto-medium)
   #+END_SRC
   
   Press ~M-x customize-group<CR>~, then input 'org-medium'. Put your integration token in the field "Org Medium Integration Token", then apply and save.
 
   Of course, you should use your own token.
 
-  In Org-Mode, you can use ~M-x org-sendto-medium~ to publish current file to Medium. The post will be licensed with ~org-medium-default-license~. Alternatively, you can use ~M-x org-sendto-medium-with-license~ to publish, and you will be asked to choose one of the following licenses: "all-rights-reserved" "cc-40-by" "cc-40-by-sa" "cc-40-by-nd" "cc-40-by-nc" "cc-40-by-nc-nd" "cc-40-by-nc-sa" "cc-40-zero" and "public-domain". Values other than these will be interpreted by Medium API as "all-rights-reserved".
+  In Org-Mode, you can use ~M-x org-sendto-medium~ or ~C-x C-j~ to publish current file to Medium. The post will be licensed with ~org-medium-default-license~. Alternatively, call ~C-u C-x C-j~ to publish, and you will be asked to choose one of the following licenses: "all-rights-reserved" "cc-40-by" "cc-40-by-sa" "cc-40-by-nd" "cc-40-by-nc" "cc-40-by-nc-nd" "cc-40-by-nc-sa" "cc-40-zero" and "public-domain", then one of the following post status (visibility): "public" "draft" and "unlisted". 
   
 * Code
   :PROPERTIES:
