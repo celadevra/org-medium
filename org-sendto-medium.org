@@ -258,7 +258,7 @@
 
       Possible VISIB values are \"public\" \"draft\" and \"unlisted\".
       "
-        (interactive)
+        (interactive "P")
         (if (not (and org-medium-author-id (org-medium-test-token)))
             (setq org-medium-author-id (org-medium-get-authorid)))
         (let* ((url-request-method "POST")
@@ -268,15 +268,13 @@
                   ("Accept" . "application/json")
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8")))
-               (custom-params (eq arg '(4)))
+               (custom-params (equal arg '(4)))
                (title (org-medium-get-title))
                (content (org-medium-get-content title))
                (content-format "html")
-               (license (if custom-params (; codes for getting user input
-                                           )
+               (license (if custom-params (org-medium-show-license-help)
                           (or lic org-medium-default-license)))
-               (publish-status (if custom-params (; codes for getting user input
-                                                  )
+               (publish-status (if custom-params (org-medium-show-visibility-help)
                                  (or visib org-medium-default-visibility)))
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
@@ -308,16 +306,35 @@
      CC-0 [0]
      Public Domain [o]
      ")
-       (case (read-char-choice "Select a license: " (list "a" "b" "s" "c" "d" "n" "y" "0" "o"))
-         ("a" "all-rights-reserved")
-         ("b" "cc-40-by")
-         ("s" "cc-40-by-sa")
-         ("c" "cc-40-by-nc")
-         ("d" "cc-40-by-nd")
-         ("n" "cc-40-by-nc-sa")
-         ("y" "cc-40-by-nc-nd")
-         ("0" "cc-zero")
-         ("o" "public-domain")))
+       (let ((x (read-char-choice "Select a license: " (append "abscdny0o" nil))))
+         (cond ((equal x 97) "all-rights-reserved")
+               ((equal x 98) "cc-40-by")
+               ((equal x 115) "cc-40-by-sa")
+               ((equal x 99) "cc-40-by-nc")
+               ((equal x 100) "cc-40-by-nd")
+               ((equal x 110) "cc-40-by-nc-sa")
+               ((equal x 121) "cc-40-by-nc-nd")
+               ((equal x 48) "cc-zero")
+               ((equal x 111) "public-domain"))))
+
+     (defun org-medium-show-visibility-help ()
+       "Helper function, show a buffer with possible visibility choices for post, let user choose, and return the visibility value."
+       ()
+       (generate-new-buffer "*Visibility*")
+       (switch-to-buffer-other-window "*Visibility*")
+       (insert "Possible choices:
+     Public [P]
+     Draft [D]
+     Unlisted [U]")
+       (case (read-char-choice "Select visibility: " (append "PDU" nil))
+         (80 "published")
+         (68 "draft")
+         (85 "unlisted")))
+   #+END_SRC
+   
+   #+BEGIN_SRC elisp :tangle no
+     ;; testing
+     (org-sendto-medium '(4) nil nil)
    #+END_SRC
 ** Postamble
    #+BEGIN_SRC elisp
