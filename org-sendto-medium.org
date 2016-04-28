@@ -283,7 +283,9 @@
                                                              :publishStatus ,publish-status
                                                              :license ,license)))
                (url (concat org-medium-apibegin "/users/" org-medium-author-id "/posts")))
-          (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer))))))
+          (url-retrieve url (lambda (status) (switch-to-buffer (current-buffer)))))
+        (kill-buffer (get-buffer "*Licenses*"))
+        (kill-buffer (get-buffer "*Visibility*")))
     #+END_SRC
     
     By default, the above function sends the post with default settings. You can also send in arguments to customize license, visibility, etc.
@@ -346,8 +348,7 @@
 * Ideas/Road Map
 ** +Handle errors during authentication/publishing+
 ** +Allow choosing license during publishing+
-** Allow publish as draft/unlisted
-** Use a dispatcher to set options and publish
+** +Allow publish as draft/unlisted+
 ** Allow assigning tags to post
 ** Allow choosing markdown as an intermediate format
 ** Allow using curl to talk with Medium in async mode
