@@ -238,14 +238,18 @@
 
     #+NAME: org-sendto-medium
     #+BEGIN_SRC elisp
-      (defun org-sendto-medium (&optional lic visib)
+      (defun org-sendto-medium (&optional arg lic visib)
         "When called without arguments, publish your post to Medium with default settings.
+
+        When called with universal argument, allow interactive selection of license and visibility.
+
       When called with LIC and/or VISIB arguments, send post request with customized arguments to alter publishing behaviour.
 
       Possible LIC values are:
       \"all-rights-reserved\"
       \"cc-40-by\"
       \"cc-40-by-sa\"
+      \"cc-40-by-nc\"
       \"cc-40-by-nd\"
       \"cc-40-by-nc-nd\"
       \"cc-40-by-nc-sa\"
@@ -264,11 +268,16 @@
                   ("Accept" . "application/json")
                   ("Authorization" . ,auth-token)
                   ("Accept-Charset" . "utf-8")))
+               (custom-params (eq arg '(4)))
                (title (org-medium-get-title))
                (content (org-medium-get-content title))
                (content-format "html")
-               (license (or lic org-medium-default-license))
-               (publish-status (or visib org-medium-default-visibility))
+               (license (if custom-params (; codes for getting user input
+                                           )
+                          (or lic org-medium-default-license)))
+               (publish-status (if custom-params (; codes for getting user input
+                                                  )
+                                 (or visib org-medium-default-visibility)))
                (url-request-data (json-encode-plist `(:title ,title
                                                              :contentFormat ,content-format
                                                              :content ,content
@@ -280,59 +289,35 @@
     
     By default, the above function sends the post with default settings. You can also send in arguments to customize license, visibility, etc.
    
-** Dispatcher
-   As there may be many settings, the DRY way is to write just a few publishing functions, preferrably only one, several functions for setting various variables, and a dispatcher function that provides an uniform interface to all these variable-setting and post-sending functions. The dispatcher interface works somewhat like Org-Mode's export dispatcher, where the user can choose values of settings by pressing shortcut keys, and then the dispatcher calls the relevant function to complete the compile-send actions.
+** Choose license and status during export
+   Maybe I don't need a full-blown interface like ~org-export-dispatch~. For now, I only need to let user choose license and visibility if the function is called with =C-u=.
    
-   The dispatcher works like this: firstly, it shows an interface with ~org-medium-dispatch-ui~. The function displays a number of license and post status options, highlight the currently selected ones, and record the selection to the publish function.
+   Need to define two help functions to show user the choices and set values:
 
-   Hitting <ENTER> in the UI calls ~org-medium-dispatch-action~, which gets the selection of options and send them to ~org-sendto-medium~.
-   
    #+BEGIN_SRC elisp
-     (defun org-medium-dispatch (&optional arg)
-       "a dispatcher for selecting licenses and status when publishing to Medium."
-       (interactive "P")
-       (if (eq arg '(4))
-           (org-medium-sendto org-medium-last-options))
-       (if (eq arg '(16))
-           (org-medium-dispatch-ui org-medium-last-options))
-       (org-medium-dispatch-ui org-medium-default-license org-medium-default-visibility))
-   #+END_SRC
-   
-   #+BEGIN_SRC elisp
-     (defun org-medium-dispatch-ui (lic visib)
-       "Show options and highlight selections of Medium publishing settings. "
-       (let* ((fontify-key
-               (lambda (key)
-                 (org-propertize key 'face 'org-warning)))
-              (fontify-value
-               (lambda (value)
-                 (org-propertize value 'face 'font-lock-variable-name-face)))
-              (help
-               (concat
-                (format "License: \n")
-                (format "[%s] All Rights Reserved       [%s] CC-BY
-                         [%s] CC-BY-SA                  [%s] CC-BY-ND
-                         [%s] CC-BY-NC                  [%s] CC-BY-NC-ND
-                         [%s] CC-BY-NC-SA               [%s] CC-0
-                         [%s] Public Domain"
-                        (funcall fontify-key "a")
-                        (funcall fontify-key "b")
-                        (funcall fontify-key "n")
-                        (funcall fontify-key "s")
-                        (funcall fontify-key "c")
-                        (funcall fontify-key "d")
-                        (funcall fontify-key "y")
-                        (funcall fontify-key "0")
-                        (funcall fontify-key "p"))
-                (format "\n\nStatus: \n")
-                (format "[%s] Public                    [%s] Unlisted
-                         [%s] Draft"
-                        (funcall fontify-key "P")
-                        (funcall fontify-key "U")
-                        (funcall fontify-key "D"))
-                (format "\n\nEnter to publish with current options: license = %s, visibility = %s" lic visib)))
-              (allowed-keys (list 80 97 98 99 100 110 112 115 121 48 85 68))
-              (standard-prompt "Key for options: "))))
+     (defun org-medium-show-license-help ()
+       "Helper function, show a buffer with possible licenses, let user choose, and return the license value."
+       ()
+       (generate-new-buffer "*Licenses*")
+       (switch-to-buffer-other-window "*Licenses*")
+       (insert "Possible choices:
+     All rights reserved [a]
+     CC-BY [b]         CC-BY-SA [s]
+     CC-BY-NC [c]      CC-BY-ND [d]
+     CC-BY-NC-SA [n]   CC-BY-NC-ND [y]
+     CC-0 [0]
+     Public Domain [o]
+     ")
+       (case (read-char-choice "Select a license: " (list "a" "b" "s" "c" "d" "n" "y" "0" "o"))
+         ("a" "all-rights-reserved")
+         ("b" "cc-40-by")
+         ("s" "cc-40-by-sa")
+         ("c" "cc-40-by-nc")
+         ("d" "cc-40-by-nd")
+         ("n" "cc-40-by-nc-sa")
+         ("y" "cc-40-by-nc-nd")
+         ("0" "cc-zero")
+         ("o" "public-domain")))
    #+END_SRC
 ** Postamble
    #+BEGIN_SRC elisp
