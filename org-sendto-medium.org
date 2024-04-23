@@ -1,6 +1,8 @@
 #+TITLE: org-sendto-medium: publish to Medium from Org-Mode
 #+AUTHOR: Haoyang Xu
 
+NOTE: Archived due to [[https://github.com/celadevra/org-medium/issues/1#issuecomment-2008944637][Medium killing its API]].
+
 * Usage
 
   Clone the repo, tangle this file:
